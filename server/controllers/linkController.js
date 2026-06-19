@@ -47,4 +47,29 @@ const getURL = async (req, res) => {
   }
 };
 
-export { genShortened, getURL };
+const fetchCommonLinks = async(req, res) => {
+   try {
+    const targetCodes = req.body.codes; 
+
+    // If no codes are sent, use a default fallback
+    const codesToFetch = targetCodes || ["f2KyylN", "25hozRT", "elh12MG"];
+
+    const links = await Link.find({ short_code: { $in: codesToFetch } });
+
+    res.status(200).json(links);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+export { genShortened, getURL, fetchCommonLinks};

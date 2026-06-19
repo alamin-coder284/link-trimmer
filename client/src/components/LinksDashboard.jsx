@@ -20,26 +20,56 @@ export default function LinksDashboard() {
   const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
+  
+    const fetchCommonLinks = async() => {
+    try{
+      const targetCodes = ["f2KyylN", "25hozRT", "elh12MG"];
+      const response = await fetch("http://localhost:1234/links", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ codes: targetCodes }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch links");
+        }
+
+        const data = await response.json();
+        setLinks(data);
+      } catch (err) {
+        console.log(err.message);
+      }
+    };
+      fetchCommonLinks();
+    
     const storedLinks = localStorage.getItem(STORAGE_KEY);
     if (storedLinks) {
       setLinks(JSON.parse(storedLinks));
     } else {
-      const demoData = [
+      const defaultData = [
         {
           id: "f2KyylN",
           originalUrl: "https://google.com",
-          shortenedUrl: "trim.ly/f2KyylN",
-          clicks: 5,
+          shortenedUrl: "zip9.gt.tc/f2KyylN",
+          clicks: 0,
         },
         {
-          id: "a3BcX1",
+          id: "25hozRT",
           originalUrl: "https://youtube.com",
-          shortenedUrl: "trim.ly/a3BcX1",
-          clicks: 2,
+          shortenedUrl: "zip9.gt.tc/25hozRT",
+          clicks: 0,
+        },
+        {
+          id: "elh12MG",
+          originalUrl: "https://github.com",
+          shortenedUrl: "zip9.gt.tc/elh12MG",
+          clicks: 0,
         },
       ];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(demoData));
-      setLinks(demoData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+      setLinks(defaultData);
     }
   }, []);
 
@@ -95,7 +125,7 @@ export default function LinksDashboard() {
           ) : (
             links.map((link) => (
               <div
-                key={link.id}
+                key={link._id || link.id}
                 className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition duration-150"
               >
                 <div className="space-y-1.5 min-w-0">
@@ -105,12 +135,12 @@ export default function LinksDashboard() {
                       className="text-gray-500 text-xs"
                     />
                     <a
-                      href={link.originalUrl}
+                      href={link.original_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-mono text-sm font-bold text-[#CB3837] hover:text-red-400 hover:underline flex items-center gap-1.5 truncate transition-colors"
                     >
-                      {link.shortenedUrl}
+                      {'zip9.gt.tc/'+link.short_code}
                       <FontAwesomeIcon
                         icon={faArrowUpRightFromSquare}
                         className="text-[9px] text-gray-500"
@@ -118,7 +148,7 @@ export default function LinksDashboard() {
                     </a>
                   </div>
                   <div className="text-xs text-gray-400 font-mono truncate max-w-md pl-5">
-                    <span className="text-gray-600">→</span> {link.originalUrl}
+                    <span className="text-gray-600">→</span> {link.original_url}
                   </div>
                 </div>
 

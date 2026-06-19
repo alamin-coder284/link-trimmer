@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { genShortened, getURL } from "./controllers/linkController.js";
+import { genShortened, getURL,fetchCommonLinks } from "./controllers/linkController.js";
 
 const app = express();
 
@@ -19,6 +19,7 @@ try {
 
 app.post("/api/shorten", genShortened);
 app.get("/:short_code", getURL);
+app.post("/links", fetchCommonLinks);
 
 const PORT = 1234;
 

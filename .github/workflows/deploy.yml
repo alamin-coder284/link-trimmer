@@ -19,12 +19,12 @@ jobs:
           node-version: 22
 
       - name: Install Dependencies
-  run: npm install
-  working-directory: ./client
+        run: npm install
+        working-directory: ./client
 
-- name: Build App
-  run: npm run build
-  working-directory: ./client
+      - name: Build App
+        run: npm run build
+        working-directory: ./client
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5

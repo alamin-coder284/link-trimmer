@@ -10,7 +10,7 @@ import {
   Send,
 } from "lucide-react";
 
-import { FaGithub } from 'react-icons/fa';
+import { FaGithub } from "react-icons/fa";
 import LinksDashboard from "./components/LinksDashboard.jsx";
 
 export default function App() {
@@ -26,18 +26,17 @@ export default function App() {
 
   const handleTrimSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch("http://localhost:1234/api/shorten",{
-    method: "POST",
-    headers: {
-    'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({url: longUrl})
+    const res = await fetch("http://localhost:1234/api/shorten", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url: longUrl }),
     });
-    
+
     const data = res.json();
     console.log(data);
-    
-    
+
     setLongUrl("");
   };
 

@@ -26,7 +26,7 @@ export default function App() {
 
   const handleTrimSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch("http://localhost:1234/api/shorten", {
+    const res = await fetch("https://zip9-trimmer.onrender.com/api/shorten", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

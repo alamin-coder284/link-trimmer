@@ -2,27 +2,46 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { genShortened, getURL,fetchCommonLinks } from "./controllers/linkController.js";
+import rateLimit from "express-rate-limit";
+import { genShortened, getURL, fetchCommonLinks } from "./controllers/linkController.js";
+
+dotenv.config();
 
 const app = express();
 
-dotenv.config();
+// Rate limiters
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests. Please slow down." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const trimLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { message: "Too many trims! Wait a moment." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply general limiter to ALL routes
+app.use(generalLimiter);
+
 app.use(cors());
 app.use(express.json());
 
-try {
-  mongoose.connect(process.env.MONGO_URI);
-  console.log("Database connected!");
-} catch (err) {
-  console.log("Error on connecting database!");
-}
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("Database connected!"))
+  .catch(err => console.log("Database connection error:", err.message));
 
-app.post("/api/shorten", genShortened);
+// Apply strict limiter ONLY to the shorten endpoint
+app.post("/api/shorten", trimLimiter, genShortened);
 app.get("/:short_code", getURL);
 app.post("/links", fetchCommonLinks);
 
 const PORT = 1234;
-
 app.listen(PORT, () => {
-  console.log(`Server is running on PORT ${PORT}`);
+  console.log(`Server running on PORT ${PORT}`);
 });

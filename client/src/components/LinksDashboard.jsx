@@ -15,7 +15,7 @@ import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
 export default function LinksDashboard({ links, setLinks }) {
   const [copiedId, setCopiedId] = useState(null);
-
+const STORAGE_KEY = "link_trimmer_urls";
   const handleCopy = async (text, id) => {
     try {
       await navigator.clipboard.writeText("http://zip9.gt.tc/" + text);

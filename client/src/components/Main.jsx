@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Scissors,
   Link,
@@ -14,8 +14,94 @@ import { FaGithub } from "react-icons/fa";
 import LinksDashboard from "./LinksDashboard.jsx";
 
 export default function Main() {
+  const STORAGE_KEY = "link_trimmer_urls";
+  const USER_LINKS_FLAG = "user_has_trimmed";
+  const [dashboardLinks, setDashboardLinks] = useState(() => {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  });
 
-   
+
+  const syncLinksFromServer = async (linksToSync) => {
+  const links = linksToSync || JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (links.length === 0) return;
+
+  const codes = links.map(link => link.short_code).filter(Boolean);
+
+  try {
+    const response = await fetch("https://zip9-trimmer.onrender.com/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codes }),
+    });
+
+    if (response.ok) {
+      const freshData = await response.json();
+      setDashboardLinks(freshData);
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(freshData));
+    }
+  } catch (err) {
+    console.log("Sync failed:", err.message);
+  }
+};
+
+  
+  useEffect(() => {
+    const fetchCommonLinks = async () => {
+      try {
+        const targetCodes = ["f2KyylN", "25hozRT", "elh12MG"];
+        const response = await fetch(
+          "https://zip9-trimmer.onrender.com/links",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ codes: targetCodes }),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch links");
+        }
+
+        const data = await response.json();
+        setDashboardLinks(data);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (err) {
+        console.log(err.message);
+      }
+    };
+    
+    
+
+    const storedLinks = localStorage.getItem(STORAGE_KEY);
+    const userHasTrimmed = localStorage.getItem(USER_LINKS_FLAG);
+
+    if (userHasTrimmed) {
+      // User has created links before — load only their links
+      if (storedLinks) {
+        setDashboardLinks(JSON.parse(storedLinks));
+      }
+    } else if (storedLinks && storedLinks !== "[]") {
+      // Returning visitor who hasn't trimmed — show whatever is stored
+      setDashboardLinks(JSON.parse(storedLinks));
+    } else {
+      // First visit ever — fetch defaults
+      fetchCommonLinks();
+    }
+  }, []);
+
+
+
+
+    useEffect(() => {
+  if (dashboardLinks.length > 0) {
+    syncLinksFromServer();
+  }
+}, []);
+    
+ 
   // State for URL Shortener
   const [longUrl, setLongUrl] = useState("");
 
@@ -30,18 +116,35 @@ export default function Main() {
     e.preventDefault();
     const res = await fetch("https://zip9-trimmer.onrender.com/api/shorten", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url: longUrl }),
     });
 
-    const data = res.json();
-    console.log(data);
+    const newLink = await res.json();
 
+    const userHasTrimmed = localStorage.getItem(USER_LINKS_FLAG);
+    let updated;
+
+    if (!userHasTrimmed) {
+      // First time trimming — replace defaults entirely
+      updated = [newLink];
+      localStorage.setItem(USER_LINKS_FLAG, "true");
+    } else {
+      // Already trimmed before — append
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      updated = [...existing, newLink];
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setDashboardLinks(updated);
+    syncLinksFromServer(updated);
     setLongUrl("");
   };
-
+  
+  
+  
+  
+  
   const handleContactSubmit = (e) => {
     e.preventDefault();
     alert(`Message logged successfully for ${contactForm.name}!`);
@@ -142,6 +245,15 @@ export default function Main() {
                     required
                     placeholder="Paste your long destination URL here..."
                     value={longUrl}
+                    onFocus={(e) => {
+                      if (!longUrl) {
+                        setLongUrl("http://");
+                        // Moves the cursor to the end of 'http://'
+                        setTimeout(() => {
+                          e.target.setSelectionRange(7, 7);
+                        }, 0);
+                      }
+                    }}
                     onChange={(e) => setLongUrl(e.target.value)}
                     className="w-full pl-10 pr-3 py-3 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm font-mono"
                   />
@@ -163,7 +275,7 @@ export default function Main() {
               </p>
             </div>
           </div>
-          <LinksDashboard />
+          <LinksDashboard links={dashboardLinks} setLinks={setDashboardLinks} />
         </section>
 
         {/* About Section */}
@@ -336,5 +448,3 @@ export default function Main() {
     </div>
   );
 }
-
-

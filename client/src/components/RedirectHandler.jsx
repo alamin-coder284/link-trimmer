@@ -1,7 +1,12 @@
-import { useParams, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 export default function RedirectHandler() {
   const { code } = useParams();
-  window.location.href = `https://zip9-trimmer.onrender.com/${code}`;
-  return <div>Redirecting {code}...</div>;
+
+  useEffect(() => {
+    window.location.replace(`https://zip9-trimmer.onrender.com/${code}`);
+  }, [code]);
+
+  return <div>Redirecting...</div>;
 }

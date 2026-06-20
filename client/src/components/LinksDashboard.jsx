@@ -13,69 +13,12 @@ import {
 
 import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
-const STORAGE_KEY = "link_trimmer_urls";
-
-export default function LinksDashboard() {
-  const [links, setLinks] = useState([]);
+export default function LinksDashboard({ links, setLinks }) {
   const [copiedId, setCopiedId] = useState(null);
-
-  useEffect(() => {
-  
-    const fetchCommonLinks = async() => {
-    try{
-      const targetCodes = ["f2KyylN", "25hozRT", "elh12MG"];
-      const response = await fetch("http://localhost:1234/links", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ codes: targetCodes }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch links");
-        }
-
-        const data = await response.json();
-        setLinks(data);
-      } catch (err) {
-        console.log(err.message);
-      }
-    };
-      fetchCommonLinks();
-    
-    const storedLinks = localStorage.getItem(STORAGE_KEY);
-    if (storedLinks) {
-      setLinks(JSON.parse(storedLinks));
-    } else {
-      const defaultData = [
-        {
-          id: "f2KyylN",
-          originalUrl: "https://google.com",
-          shortenedUrl: "zip9.gt.tc/f2KyylN",
-          clicks: 0,
-        },
-        {
-          id: "25hozRT",
-          originalUrl: "https://youtube.com",
-          shortenedUrl: "zip9.gt.tc/25hozRT",
-          clicks: 0,
-        },
-        {
-          id: "elh12MG",
-          originalUrl: "https://github.com",
-          shortenedUrl: "zip9.gt.tc/elh12MG",
-          clicks: 0,
-        },
-      ];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
-      setLinks(defaultData);
-    }
-  }, []);
 
   const handleCopy = async (text, id) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText("http://zip9.gt.tc/" + text);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
@@ -84,11 +27,12 @@ export default function LinksDashboard() {
   };
 
   const handleDelete = (id) => {
-    const updatedLinks = links.filter((link) => link.id !== id);
+    const updatedLinks = links.filter(
+      (link) => link._id !== id && link.id !== id,
+    );
     setLinks(updatedLinks);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLinks));
   };
-
   return (
     <section id="dashboard-section" className="py-12 px-6 max-w-4xl mx-auto">
       <div className="bg-black/90 border border-gray-800 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
@@ -123,80 +67,84 @@ export default function LinksDashboard() {
               <span>No trimmed paths committed yet. Paste a link above.</span>
             </div>
           ) : (
-            links.map((link) => (
-              <div
-                key={link._id || link.id}
-                className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition duration-150"
-              >
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <FontAwesomeIcon
-                      icon={faFileLines}
-                      className="text-gray-500 text-xs"
-                    />
-                    <a
-                      href={link.original_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-sm font-bold text-[#CB3837] hover:text-red-400 hover:underline flex items-center gap-1.5 truncate transition-colors"
-                    >
-                      {'zip9.gt.tc/'+link.short_code}
+            links.map((link) => {
+              const linkId = link.id || link._id;
+              return (
+                <div
+                  key={linkId}
+                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition duration-150"
+                >
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex items-center space-x-2">
                       <FontAwesomeIcon
-                        icon={faArrowUpRightFromSquare}
-                        className="text-[9px] text-gray-500"
+                        icon={faFileLines}
+                        className="text-gray-500 text-xs"
                       />
-                    </a>
+                      <a
+                        href={link.short_code}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-sm font-bold text-[#CB3837] hover:text-red-400 hover:underline flex items-center gap-1.5 truncate transition-colors"
+                      >
+                        {"zip9.gt.tc/" + link.short_code}
+                        <FontAwesomeIcon
+                          icon={faArrowUpRightFromSquare}
+                          className="text-[9px] text-gray-500"
+                        />
+                      </a>
+                    </div>
+                    <div className="text-xs text-gray-400 font-mono truncate max-w-md pl-5">
+                      <span className="text-gray-600">→</span>{" "}
+                      {link.original_url}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400 font-mono truncate max-w-md pl-5">
-                    <span className="text-gray-600">→</span> {link.original_url}
+
+                  {/* Metrics & Controls */}
+                  <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-none pt-3 sm:pt-0 border-gray-900">
+                    <div className="flex items-center space-x-1.5 text-xs text-gray-300 bg-gray-900 px-3 py-1.5 rounded-md border border-gray-800 font-mono whitespace-nowrap">
+                      <FontAwesomeIcon
+                        icon={faChartLine}
+                        className="text-gray-500 text-[10px]"
+                      />
+                      <span>
+                        <strong>{link.clicks}</strong> hits
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {/* Copy Button */}
+                      <button
+                        onClick={() => handleCopy(link.short_code, linkId)}
+                        className={`text-xs font-mono font-medium py-1.5 px-3 border rounded-md shadow-sm flex items-center space-x-1.5 transition duration-150 ${
+                          copiedId === linkId
+                            ? "bg-emerald-950/30 border-emerald-500/50 text-emerald-400"
+                            : "bg-black text-white hover:bg-gray-900 border-gray-800 hover:border-gray-700"
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={copiedId === linkId ? faCircleCheck : faCopy}
+                          className={
+                            copiedId === linkId
+                              ? "text-emerald-400"
+                              : "text-gray-500"
+                          }
+                        />
+                        <span>{copiedId === linkId ? "Copied!" : "Copy"}</span>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDelete(linkId)}
+                        className="bg-black hover:bg-red-950/20 text-gray-500 hover:text-red-500 text-xs py-1.5 px-2.5 border border-gray-800 hover:border-red-900/50 rounded-md transition duration-150"
+                        title="Delete Link"
+                      >
+                        <FontAwesomeIcon icon={faTrashCan} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Metrics & Controls */}
-                <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-none pt-3 sm:pt-0 border-gray-900">
-                  <div className="flex items-center space-x-1.5 text-xs text-gray-300 bg-gray-900 px-3 py-1.5 rounded-md border border-gray-800 font-mono whitespace-nowrap">
-                    <FontAwesomeIcon
-                      icon={faChartLine}
-                      className="text-gray-500 text-[10px]"
-                    />
-                    <span>
-                      <strong>{link.clicks}</strong> hits
-                    </span>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    {/* Copy Button */}
-                    <button
-                      onClick={() => handleCopy(link.shortenedUrl, link.id)}
-                      className={`text-xs font-mono font-medium py-1.5 px-3 border rounded-md shadow-sm flex items-center space-x-1.5 transition duration-150 ${
-                        copiedId === link.id
-                          ? "bg-emerald-950/30 border-emerald-500/50 text-emerald-400"
-                          : "bg-black text-white hover:bg-gray-900 border-gray-800 hover:border-gray-700"
-                      }`}
-                    >
-                      <FontAwesomeIcon
-                        icon={copiedId === link.id ? faCircleCheck : faCopy}
-                        className={
-                          copiedId === link.id
-                            ? "text-emerald-400"
-                            : "text-gray-500"
-                        }
-                      />
-                      <span>{copiedId === link.id ? "Copied!" : "Copy"}</span>
-                    </button>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDelete(link.id)}
-                      className="bg-black hover:bg-red-950/20 text-gray-500 hover:text-red-500 text-xs py-1.5 px-2.5 border border-gray-800 hover:border-red-900/50 rounded-md transition duration-150"
-                      title="Delete Link"
-                    >
-                      <FontAwesomeIcon icon={faTrashCan} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

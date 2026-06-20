@@ -6,7 +6,7 @@ const genShortened = async (req, res) => {
     const { url } = req.body;
 
     if (!url) {
-      res.status(404).json({ message: "No URL found!" });
+     return res.status(404).json({ message: "No URL found!" });
     }
 
     const shortCode = nanoid(7);
@@ -35,13 +35,13 @@ const getURL = async (req, res) => {
     const linkDoc = await Link.findOne({ short_code: short_code });
 
     if (!linkDoc) {
-      return res.status(404).status({ message: "Link not found!" });
+      return res.status(404).json({ message: "Link not found!" });
     }
 
     linkDoc.clicks += 1;
     await linkDoc.save();
 
-    res.redirect(301, linkDoc.original_url);
+    res.redirect(302, linkDoc.original_url);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -61,12 +61,6 @@ const fetchCommonLinks = async(req, res) => {
     res.status(500).json({ message: err.message });
   }
 }
-
-
-
-
-
-
 
 
 

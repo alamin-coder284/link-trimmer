@@ -14,6 +14,12 @@ import { FaGithub } from "react-icons/fa";
 import LinksDashboard from "./LinksDashboard.jsx";
 
 export default function Main() {
+  const [showSuccess, setShowSuccess] = useState(false);
+const [newShortLink, setNewShortLink] = useState("");
+
+  const [isTrimming, setIsTrimming] = useState(false);
+const [trimError, setTrimError] = useState("");
+
   const STORAGE_KEY = "link_trimmer_urls";
   const USER_LINKS_FLAG = "user_has_trimmed";
   const [dashboardLinks, setDashboardLinks] = useState(() => {
@@ -113,7 +119,13 @@ export default function Main() {
   });
 
   const handleTrimSubmit = async (e) => {
+  
     e.preventDefault();
+    
+    setIsTrimming(true);
+    setTrimError("");
+    
+    try{
     const res = await fetch("https://zip9-trimmer.onrender.com/api/shorten", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -138,10 +150,20 @@ export default function Main() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     setDashboardLinks(updated);
     syncLinksFromServer(updated);
+    
+    // Show success feedback
+  setNewShortLink(`zip9.gt.tc/${newLink.short_code}`);
+  setShowSuccess(true);
+  setTimeout(() => setShowSuccess(false), 4000); // Auto-hide after 4s
+    
     setLongUrl("");
+    } catch(err){
+    setTrimError(err.message || "Something went wrong");
+    } finally {
+    setIsTrimming(false);
+  }
+    
   };
-  
-  
   
   
   
@@ -223,6 +245,8 @@ export default function Main() {
               <span>v1.0.4 stable</span>
             </span>
 
+
+
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
               Shorten links instantly.
             </h1>
@@ -236,27 +260,96 @@ export default function Main() {
                 onSubmit={handleTrimSubmit}
                 className="flex flex-col sm:flex-row gap-3 bg-[#111] p-2 rounded-xl border border-gray-800 shadow-2xl"
               >
-                <div className="relative flex-grow">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                    <Link className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="url"
-                    required
-                    placeholder="Paste your long destination URL here..."
-                    value={longUrl}
-                    onFocus={(e) => {
-                      if (!longUrl) {
-                        setLongUrl("http://");
-                        // Moves the cursor to the end of 'http://'
-                        setTimeout(() => {
-                          e.target.setSelectionRange(7, 7);
-                        }, 0);
-                      }
-                    }}
-                    onChange={(e) => setLongUrl(e.target.value)}
-                    className="w-full pl-10 pr-3 py-3 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm font-mono"
-                  />
+<div className={`relative flex-grow rounded-lg p-[1.5px] transition-all duration-300 ${
+  isTrimming 
+    ? "revolving-border" 
+    : trimError 
+      ? "bg-red-500/60 shadow-lg shadow-red-500/20" 
+      : "bg-transparent"
+}`}>
+  <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${
+    trimError ? "text-red-400" : "text-gray-500"
+  }`}>
+    <Link className="w-4 h-4" />
+  </div>
+  <input
+    type="url"
+    required
+    placeholder="Paste your long destination URL here..."
+    value={longUrl}
+    disabled={isTrimming}
+    onFocus={(e) => {
+      if (!longUrl) {
+        setLongUrl("http://");
+        setTimeout(() => {
+          e.target.setSelectionRange(7, 7);
+        }, 0);
+      }
+    }}
+    onChange={(e) => {
+      setLongUrl(e.target.value);
+      if (trimError) setTrimError("");
+    }}
+    className={`w-full pl-10 pr-3 py-3 bg-[#111] rounded-lg text-white placeholder-gray-600 focus:outline-none text-sm font-mono transition-all duration-300 ${
+      trimError ? "ring-2 ring-red-500/30" : ""
+    }`}
+  />
+  
+  {/* Loading spinner inside input */}
+  {isTrimming && (
+    <div className="absolute inset-y-0 right-3 flex items-center">
+      <svg className="w-4 h-4 animate-spin text-[#CB3837]" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+    </div>
+  )}
+
+
+    {/* Fixed Success Toast */}
+{showSuccess && (
+  <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
+    <div className="bg-emerald-950/60 border border-emerald-500/40 rounded-lg px-5 py-3 flex items-center gap-3 backdrop-blur-md shadow-2xl shadow-emerald-900/20">
+      {/* Animated checkmark */}
+      <div className="relative flex-shrink-0">
+        <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeDasharray="40" strokeDashoffset="40" className="animate-[draw_0.4s_ease-out_forwards]"/>
+          <path d="M22 4 12 14.01l-3-3" strokeDasharray="20" strokeDashoffset="20" className="animate-[draw_0.3s_ease-out_0.2s_forwards]"/>
+        </svg>
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <p className="text-emerald-300 text-sm font-semibold">Link trimmed!</p>
+        <p className="text-emerald-400/70 text-xs font-mono truncate">{newShortLink}</p>
+      </div>
+      
+      {/* Close button */}
+      <button
+        onClick={() => setShowSuccess(false)}
+        className="text-emerald-600 hover:text-emerald-400 transition-colors flex-shrink-0 ml-2"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+)}   
+
+
+   {trimError && (
+  <div className="flex items-center gap-2 text-xs text-red-400/90 font-mono px-3 pt-1 animate-in fade-in duration-200">
+    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 8v4M12 16h.01"/>
+    </svg>
+    <span>{trimError}</span>
+  </div>
+)}
+
+
+           
+                  
                 </div>
                 <button
                   type="submit"

@@ -20,6 +20,7 @@ export default function Main() {
 
   const [isTrimming, setIsTrimming] = useState(false);
   const [trimError, setTrimError] = useState("");
+  const [isDuplicate, setIsDuplicate] = useState(false);
 
   const STORAGE_KEY = "link_trimmer_urls";
   const USER_LINKS_FLAG = "user_has_trimmed";
@@ -139,6 +140,18 @@ export default function Main() {
       if (!res.ok) {
         throw new Error(data.message || "Something went wrong!");
       }
+      
+      if (res.status === 200) {
+      setNewShortLink(`zip9.gt.tc/${data.short_code}`);
+      setIsDuplicate(true);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setIsDuplicate(false);
+      }, 4000);
+      setLongUrl("");
+      return; // 🛑 Stop here. No localStorage, no sync, no state update.
+    }
 
       const newLink = data;
 
@@ -357,8 +370,8 @@ export default function Main() {
 
                         <div className="flex-1 min-w-0">
                           <p className="text-emerald-300 text-sm font-semibold">
-                            Link trimmed!
-                          </p>
+  {isDuplicate ? "Already exists!" : "Link trimmed!"}
+</p>
                           <p className="text-emerald-400/70 text-xs font-mono truncate">
                             {newShortLink}
                           </p>

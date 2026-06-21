@@ -51,8 +51,23 @@ mongoose
 
 // Apply strict limiter ONLY to the shorten endpoint
 app.post("/api/shorten", trimLimiter, genShortened);
-app.get("/:short_code", getURL);
 app.post("/links", fetchCommonLinks);
+app.get("/api/status", async (req, res) => {
+  try {
+    await redisClient.ping();
+    res.json({ 
+      redis: "connected",
+      database: "connected",
+      server: "running"
+    });
+  } catch (err) {
+    res.json({ 
+      redis: "disconnected",
+      database: "connected", 
+      server: "running"
+    });
+  }
+});
 app.get("/api/rate-limit-status", async (req, res) => {
   try {
     const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
@@ -84,6 +99,9 @@ app.get("/api/rate-limit-status", async (req, res) => {
     res.status(500).json({ message: "Could not fetch limits" });
   }
 });
+
+app.get("/:short_code", getURL);
+
 const PORT = 1234;
 app.listen(PORT, () => {
   console.log(`Server running on PORT ${PORT}`);

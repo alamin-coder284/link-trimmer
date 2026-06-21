@@ -21,13 +21,35 @@ export default function Main() {
   const [isTrimming, setIsTrimming] = useState(false);
   const [trimError, setTrimError] = useState("");
   const [isDuplicate, setIsDuplicate] = useState(false);
-
+  const [rateLimit, setRateLimit] = useState({ remaining: 10, resetIn: 0 });
+  
   const STORAGE_KEY = "link_trimmer_urls";
   const USER_LINKS_FLAG = "user_has_trimmed";
   const [dashboardLinks, setDashboardLinks] = useState(() => {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   });
+  
+  
+  
+  const fetchRateLimit = async () => {
+  try {
+    const res = await fetch("https://zip9-trimmer.onrender.com/api/rate-limit-status");
+    if (res.ok) {
+      const data = await res.json();
+      setRateLimit(data.trim);
+    }
+  } catch (err) {
+    // Silently fail — indicator is bonus, not critical
+  }
+};
 
+useEffect(() => {
+  fetchRateLimit();
+}, [dashboardLinks]);
+  
+  
+  
+  
   const syncLinksFromServer = async (linksToSync) => {
     setIsLoadingLinks(true);
     const links =
@@ -427,6 +449,23 @@ export default function Main() {
                 </kbd>{" "}
                 to execute command.
               </p>
+              <div className="text-left text-xs font-mono mt-1 ml-2 flex items-center gap-2">
+  <span className={`inline-block w-1.5 h-1.5 rounded-full ${
+    rateLimit.remaining > 5 
+      ? 'bg-emerald-400' 
+      : rateLimit.remaining > 2 
+        ? 'bg-yellow-400' 
+        : 'bg-red-400'
+  }`}></span>
+  <span className="text-gray-500">
+    {rateLimit.remaining} / {rateLimit.limit} trims remaining
+  </span>
+  {rateLimit.remaining <= 3 && (
+    <span className="text-gray-600">
+      (resets in {Math.ceil(rateLimit.resetIn)}s)
+    </span>
+  )}
+</div>
             </div>
           </div>
           <LinksDashboard

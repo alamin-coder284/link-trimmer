@@ -8,7 +8,22 @@ const genShortened = async (req, res) => {
     if (!url) {
       return res.status(404).json({ message: "No URL found!" });
     }
-
+     
+     
+    // Check for duplicate
+    const existingLink = await Link.findOne({ original_url: url });
+    if (existingLink) {
+      return res.status(200).json({
+        short_code: existingLink.short_code,
+        original_url: existingLink.original_url,
+        clicks: existingLink.clicks,
+        message: "URL already shortened",
+      });
+    }
+    
+    
+    
+    
     const shortCode = nanoid(7);
 
     const newLink = new Link({

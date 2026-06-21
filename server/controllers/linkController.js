@@ -6,7 +6,7 @@ const genShortened = async (req, res) => {
     const { url } = req.body;
 
     if (!url) {
-     return res.status(404).json({ message: "No URL found!" });
+      return res.status(404).json({ message: "No URL found!" });
     }
 
     const shortCode = nanoid(7);
@@ -47,9 +47,9 @@ const getURL = async (req, res) => {
   }
 };
 
-const fetchCommonLinks = async(req, res) => {
-   try {
-    const targetCodes = req.body.codes; 
+const fetchCommonLinks = async (req, res) => {
+  try {
+    const targetCodes = req.body.codes;
 
     // If no codes are sent, use a default fallback
     const codesToFetch = targetCodes || ["f2KyylN", "25hozRT", "elh12MG"];
@@ -60,10 +60,6 @@ const fetchCommonLinks = async(req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-}
+};
 
-
-
-
-
-export { genShortened, getURL, fetchCommonLinks};
+export { genShortened, getURL, fetchCommonLinks };

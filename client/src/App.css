@@ -6,15 +6,20 @@
   }
 }
 
-
- @keyframes revolve-border {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes revolve-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .revolving-border {
-  background: linear-gradient(90deg, #CB3837, #ff6b6b, #CB3837, #ff6b6b);
+  background: linear-gradient(90deg, #cb3837, #ff6b6b, #cb3837, #ff6b6b);
   background-size: 300% 100%;
   animation: revolve-border 1.5s linear infinite;
 }

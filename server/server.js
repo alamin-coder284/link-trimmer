@@ -3,7 +3,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import rateLimit from "express-rate-limit";
-import { genShortened, getURL, fetchCommonLinks } from "./controllers/linkController.js";
+import {
+  genShortened,
+  getURL,
+  fetchCommonLinks,
+} from "./controllers/linkController.js";
 
 dotenv.config();
 
@@ -32,9 +36,10 @@ app.use(generalLimiter);
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("Database connected!"))
-  .catch(err => console.log("Database connection error:", err.message));
+  .catch((err) => console.log("Database connection error:", err.message));
 
 // Apply strict limiter ONLY to the shorten endpoint
 app.post("/api/shorten", trimLimiter, genShortened);

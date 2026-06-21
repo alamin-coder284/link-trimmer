@@ -39,7 +39,9 @@ export default function RedirectHandler() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-red-400 font-mono text-lg">Link not found!</p>
-          <p className="text-gray-500 font-mono text-sm">Redirecting to home...</p>
+          <p className="text-gray-500 font-mono text-sm">
+            Redirecting to home...
+          </p>
         </div>
       </div>
     );
@@ -51,8 +53,3 @@ export default function RedirectHandler() {
     </div>
   );
 }
-
-
-
-
-

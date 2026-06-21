@@ -13,9 +13,9 @@ import {
 
 import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
-export default function LinksDashboard({ links, setLinks }) {
+export default function LinksDashboard({ links, setLinks,isLoading }) {
   const [copiedId, setCopiedId] = useState(null);
-const STORAGE_KEY = "link_trimmer_urls";
+  const STORAGE_KEY = "link_trimmer_urls";
   const handleCopy = async (text, id) => {
     try {
       await navigator.clipboard.writeText("http://zip9.gt.tc/" + text);
@@ -48,16 +48,29 @@ const STORAGE_KEY = "link_trimmer_urls";
               active_redirects<span className="text-[#CB3837]">.log</span>
             </h3>
             <span className="bg-[#CB3837]/10 text-[#CB3837] border border-[#CB3837]/30 font-mono text-xs px-2 py-0.5 rounded-full font-bold">
-              {links.length}
+              {isLoading ? "..." : links.length}
             </span>
           </div>
           <p className="text-xs text-gray-500 font-mono">
-            localStorage sync: enabled
+            {isLoading ? "..." : "localStorage sync: enabled"}
           </p>
         </div>
 
         {/* Links Map Grid */}
-        <div className="divide-y divide-gray-900">
+ <div className="divide-y divide-gray-900">
+          {/* Loading Skeleton */}
+          {isLoading && (
+            <>
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="p-5 sm:p-6 animate-pulse">
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-800 rounded w-48"></div>
+                    <div className="h-3 bg-gray-800 rounded w-72"></div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
           {links.length === 0 ? (
             <div className="p-16 text-center text-gray-500 text-sm font-mono">
               <FontAwesomeIcon

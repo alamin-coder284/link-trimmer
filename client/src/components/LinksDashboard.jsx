@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-// Core React Component Wrapper
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -13,9 +12,10 @@ import {
 
 import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
-export default function LinksDashboard({ links, setLinks,isLoading }) {
+export default function LinksDashboard({ links, setLinks, isLoading }) {
   const [copiedId, setCopiedId] = useState(null);
   const STORAGE_KEY = "link_trimmer_urls";
+
   const handleCopy = async (text, id) => {
     try {
       await navigator.clipboard.writeText("http://zip9.gt.tc/" + text);
@@ -28,18 +28,18 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
 
   const handleDelete = (id) => {
     const updatedLinks = links.filter(
-      (link) => link._id !== id && link.id !== id,
+      (link) => link._id !== id && link.id !== id
     );
     setLinks(updatedLinks);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLinks));
   };
+
   return (
     <section id="dashboard-section" className="py-12 px-6 max-w-4xl mx-auto">
       <div className="bg-black/90 border border-gray-800 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
         {/* Header Component */}
         <div className="bg-gradient-to-r from-gray-950 to-black border-b border-gray-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
-            {/* Native SVG Render via npm */}
             <FontAwesomeIcon
               icon={faTerminal}
               className="text-gray-500 text-xs"
@@ -48,16 +48,16 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
               active_redirects<span className="text-[#CB3837]">.log</span>
             </h3>
             <span className="bg-[#CB3837]/10 text-[#CB3837] border border-[#CB3837]/30 font-mono text-xs px-2 py-0.5 rounded-full font-bold">
-              {isLoading ? "..." : links.length}
+              {isLoading ? "..." : links.filter(l => l.short_code).length}
             </span>
           </div>
           <p className="text-xs text-gray-500 font-mono">
-            {isLoading ? "..." : "localStorage sync: enabled"}
+            {isLoading ? "syncing..." : "localStorage sync: enabled"}
           </p>
         </div>
 
         {/* Links Map Grid */}
- <div className="divide-y divide-gray-900">
+        <div className="divide-y divide-gray-900">
           {/* Loading Skeleton */}
           {isLoading && (
             <>
@@ -71,7 +71,9 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
               ))}
             </>
           )}
-          {links.length === 0 ? (
+
+          {/* Empty State */}
+          {!isLoading && links.length === 0 && (
             <div className="p-16 text-center text-gray-500 text-sm font-mono">
               <FontAwesomeIcon
                 icon={faCodeCommit}
@@ -79,7 +81,38 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
               />
               <span>No trimmed paths committed yet. Paste a link above.</span>
             </div>
-          ) : (
+          )}
+
+          {/* MongoDB Waking Up */}
+          {!isLoading && links.length > 0 && links.some(link => !link.short_code) && (
+            <div className="p-16 text-center text-gray-500 text-sm font-mono">
+              <svg
+                className="w-8 h-8 animate-spin text-[#CB3837] mx-auto mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              <span>Waking up database...</span>
+            </div>
+          )}
+
+          {/* Valid Links */}
+          {!isLoading &&
+            links.length > 0 &&
+            links.every(link => link.short_code) &&
             links.map((link) => {
               const linkId = link.id || link._id;
               return (
@@ -94,7 +127,7 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
                         className="text-gray-500 text-xs"
                       />
                       <a
-                        href={link.short_code}
+                        href={`https://zip9-trimmer.onrender.com/${link.short_code}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="font-mono text-sm font-bold text-[#CB3837] hover:text-red-400 hover:underline flex items-center gap-1.5 truncate transition-colors"
@@ -120,7 +153,7 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
                         className="text-gray-500 text-[10px]"
                       />
                       <span>
-                        <strong>{link.clicks}</strong> hits
+                        <strong>{link.clicks || 0}</strong> hits
                       </span>
                     </div>
 
@@ -142,7 +175,9 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
                               : "text-gray-500"
                           }
                         />
-                        <span>{copiedId === linkId ? "Copied!" : "Copy"}</span>
+                        <span>
+                          {copiedId === linkId ? "Copied!" : "Copy"}
+                        </span>
                       </button>
 
                       {/* Delete Button */}
@@ -157,8 +192,7 @@ export default function LinksDashboard({ links, setLinks,isLoading }) {
                   </div>
                 </div>
               );
-            })
-          )}
+            })}
         </div>
       </div>
     </section>

@@ -198,7 +198,8 @@ useEffect(() => {
       setNewShortLink(`zip9.gt.tc/${newLink.short_code}`);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 4000); // Auto-hide after 4s
-
+       
+      fetchRateLimit(); 
       setLongUrl("");
     } catch (err) {
       setTrimError(err.message || "Something went wrong");

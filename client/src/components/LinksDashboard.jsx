@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -13,6 +13,7 @@ import {
 import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
 export default function LinksDashboard({ links, setLinks, isLoading }) {
+  const [redisStatus, setRedisStatus] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const STORAGE_KEY = "link_trimmer_urls";
 
@@ -33,6 +34,19 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
     setLinks(updatedLinks);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLinks));
   };
+  
+  useEffect(() => {
+  const checkStatus = async () => {
+    try {
+      const res = await fetch("https://zip9-trimmer.onrender.com/api/status");
+      const data = await res.json();
+      setRedisStatus(data.redis);
+    } catch {
+      setRedisStatus("unknown");
+    }
+  };
+  checkStatus();
+}, []);
 
   return (
     <section id="dashboard-section" className="py-12 px-6 max-w-4xl mx-auto">
@@ -51,9 +65,38 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
               {isLoading ? "..." : links.filter(l => l.short_code).length}
             </span>
           </div>
-          <p className="text-xs text-gray-500 font-mono">
-            {isLoading ? "syncing..." : "localStorage sync: enabled"}
-          </p>
+          <div className="flex items-center gap-3">
+  {/* Redis Status */}
+  {redisStatus && (
+    <div className="flex items-center gap-1.5">
+      <span className={`inline-block w-2 h-2 rounded-full ${
+        redisStatus === "connected" 
+          ? "bg-emerald-400 animate-pulse" 
+          : redisStatus === "unknown"
+            ? "bg-yellow-400"
+            : "bg-red-400"
+      }`}></span>
+      <span className="text-xs font-mono text-gray-500 whitespace-nowrap">
+        {redisStatus === "connected" 
+          ? "Redis online" 
+          : redisStatus === "unknown"
+            ? "Redis checking..."
+            : "Redis offline"}
+      </span>
+    </div>
+  )}
+  
+  {/* Rate limit badge */}
+  {redisStatus === "connected" && (
+    <div className="flex items-center gap-1.5 text-xs font-mono text-gray-500 whitespace-nowrap">
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      <span>Rate limited</span>
+    </div>
+  )}
+</div>
         </div>
 
         {/* Links Map Grid */}
@@ -198,3 +241,7 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
     </section>
   );
 }
+
+
+
+

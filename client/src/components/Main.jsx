@@ -22,34 +22,31 @@ export default function Main() {
   const [trimError, setTrimError] = useState("");
   const [isDuplicate, setIsDuplicate] = useState(false);
   const [rateLimit, setRateLimit] = useState({ remaining: 10, resetIn: 0 });
-  
+
   const STORAGE_KEY = "link_trimmer_urls";
   const USER_LINKS_FLAG = "user_has_trimmed";
   const [dashboardLinks, setDashboardLinks] = useState(() => {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   });
-  
-  
-  
-  const fetchRateLimit = async () => {
-  try {
-    const res = await fetch("https://zip9-trimmer.onrender.com/api/rate-limit-status");
-    if (res.ok) {
-      const data = await res.json();
-      setRateLimit(data.trim);
-    }
-  } catch (err) {
-    // Silently fail — indicator is bonus, not critical
-  }
-};
 
-useEffect(() => {
-  fetchRateLimit();
-}, [dashboardLinks]);
-  
-  
-  
-  
+  const fetchRateLimit = async () => {
+    try {
+      const res = await fetch(
+        "https://zip9-trimmer.onrender.com/api/rate-limit-status",
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setRateLimit(data.trim);
+      }
+    } catch (err) {
+      // Silently fail — indicator is bonus, not critical
+    }
+  };
+
+  useEffect(() => {
+    fetchRateLimit();
+  }, [dashboardLinks]);
+
   const syncLinksFromServer = async (linksToSync) => {
     setIsLoadingLinks(true);
     const links =
@@ -162,18 +159,18 @@ useEffect(() => {
       if (!res.ok) {
         throw new Error(data.message || "Something went wrong!");
       }
-      
+
       if (res.status === 200) {
-      setNewShortLink(`zip9.gt.tc/${data.short_code}`);
-      setIsDuplicate(true);
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setIsDuplicate(false);
-      }, 4000);
-      setLongUrl("");
-      return; // 🛑 Stop here. No localStorage, no sync, no state update.
-    }
+        setNewShortLink(`zip9.gt.tc/${data.short_code}`);
+        setIsDuplicate(true);
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setIsDuplicate(false);
+        }, 4000);
+        setLongUrl("");
+        return; // 🛑 Stop here. No localStorage, no sync, no state update.
+      }
 
       const newLink = data;
 
@@ -198,8 +195,8 @@ useEffect(() => {
       setNewShortLink(`zip9.gt.tc/${newLink.short_code}`);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 4000); // Auto-hide after 4s
-       
-      fetchRateLimit(); 
+
+      fetchRateLimit();
       setLongUrl("");
     } catch (err) {
       setTrimError(err.message || "Something went wrong");
@@ -393,8 +390,8 @@ useEffect(() => {
 
                         <div className="flex-1 min-w-0">
                           <p className="text-emerald-300 text-sm font-semibold">
-  {isDuplicate ? "Already exists!" : "Link trimmed!"}
-</p>
+                            {isDuplicate ? "Already exists!" : "Link trimmed!"}
+                          </p>
                           <p className="text-emerald-400/70 text-xs font-mono truncate">
                             {newShortLink}
                           </p>
@@ -451,22 +448,24 @@ useEffect(() => {
                 to execute command.
               </p>
               <div className="text-left text-xs font-mono mt-1 ml-2 flex items-center gap-2">
-  <span className={`inline-block w-1.5 h-1.5 rounded-full ${
-    rateLimit.remaining > 5 
-      ? 'bg-emerald-400' 
-      : rateLimit.remaining > 2 
-        ? 'bg-yellow-400' 
-        : 'bg-red-400'
-  }`}></span>
-  <span className="text-gray-500">
-    {rateLimit.remaining} / {rateLimit.limit} trims remaining
-  </span>
-  {rateLimit.remaining <= 3 && (
-    <span className="text-gray-600">
-      (resets in {Math.ceil(rateLimit.resetIn)}s)
-    </span>
-  )}
-</div>
+                <span
+                  className={`inline-block w-1.5 h-1.5 rounded-full ${
+                    rateLimit.remaining > 5
+                      ? "bg-emerald-400"
+                      : rateLimit.remaining > 2
+                        ? "bg-yellow-400"
+                        : "bg-red-400"
+                  }`}
+                ></span>
+                <span className="text-gray-500">
+                  {rateLimit.remaining} / {rateLimit.limit} trims remaining
+                </span>
+                {rateLimit.remaining <= 3 && (
+                  <span className="text-gray-600">
+                    (resets in {Math.ceil(rateLimit.resetIn)}s)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <LinksDashboard

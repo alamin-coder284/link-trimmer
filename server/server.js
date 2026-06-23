@@ -45,6 +45,38 @@ app.get("/api/status", async (req, res) => {
   }
 });
 
+
+app.get("/api/analytics/:short_code", async (req, res) => {
+  try {
+    const link = await Link.findOne({ short_code: req.params.short_code });
+    
+    if (!link) {
+      return res.status(404).json({ message: "Link not found" });
+    }
+
+    // Count by country
+    const countries = {};
+    const devices = {};
+    const browsers = {};
+
+    link.analytics.forEach(a => {
+      countries[a.country] = (countries[a.country] || 0) + 1;
+      devices[a.device] = (devices[a.device] || 0) + 1;
+      browsers[a.browser] = (browsers[a.browser] || 0) + 1;
+    });
+
+    res.json({
+      totalClicks: link.clicks,
+      countries,
+      devices,
+      browsers,
+      recentActivity: link.analytics.slice(-10).reverse()
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 app.get("/api/rate-limit-status", async (req, res) => {
   try {
     const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';

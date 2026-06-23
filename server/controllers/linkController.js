@@ -1,5 +1,6 @@
 import Link from "../models/Link.js";
 import { nanoid } from "nanoid";
+import UAParser from "ua-parser-js";
 
 const genShortened = async (req, res) => {
   try {
@@ -43,16 +44,39 @@ const genShortened = async (req, res) => {
   }
 };
 
+
+
+
+
+
 const getURL = async (req, res) => {
   try {
     const { short_code } = req.params;
 
-    const linkDoc = await Link.findOne({ short_code: short_code });
+    const linkDoc = await Link.findOne({ short_code });
 
     if (!linkDoc) {
       return res.status(404).json({ message: "Link not found!" });
     }
 
+    // Parse device info
+    const ua = new UAParser(req.headers['user-agent']);
+    const device = ua.getDevice().type || 'desktop';
+    const browser = ua.getBrowser().name || 'unknown';
+
+    // Get country from IP (free API)
+    let country = 'unknown';
+    try {
+      const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+      const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+      const geoData = await geoRes.json();
+      country = geoData.country || 'unknown';
+    } catch (err) {
+      // Silently fail — country is bonus, not critical
+    }
+
+    // Save analytics
+    linkDoc.analytics.push({ country, device, browser });
     linkDoc.clicks += 1;
     await linkDoc.save();
 
@@ -61,6 +85,11 @@ const getURL = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+
+
 
 const fetchCommonLinks = async (req, res) => {
   try {

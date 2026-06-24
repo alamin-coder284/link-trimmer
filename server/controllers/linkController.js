@@ -58,23 +58,9 @@ const getURL = async (req, res) => {
     
     if (cachedUrl) {
       console.log(`⚡ Cache HIT for ${short_code} - 1ms Redirect`);
-      return res.redirect(302, cachedUrl);
-    }
-
-    console.log(`💾 Cache MISS for ${short_code} - MongoDB Query`);
-
-    // STEP 2: Cache এ নাই। MongoDB থেকে আনো
-    const linkDoc = await Link.findOne({ short_code });
-
-    if (!linkDoc) {
-      return res.status(404).json({ message: "Link not found!" });
-    }
-
-    // STEP 3: MongoDB থেকে পাইছো। Redis এ Save করো 1 ঘন্টার জন্য
-    await redisClient.set(short_code, linkDoc.original_url, { EX: 3600 });
-    console.log(`💾 Saved ${short_code} to Redis Cache for 1 hour`);
-
-    // STEP 4: Analytics এর কাজ আগের মতোই
+      
+      
+      // STEP 4: Analytics এর কাজ আগের মতোই
     const ua = new UAParser(req.headers['user-agent']);
     const device = ua.getDevice().type || 'desktop';
     const browser = ua.getBrowser().name || 'unknown';
@@ -98,8 +84,24 @@ const getURL = async (req, res) => {
    await redisClient.lpush(`queue:${short_code}`, JSON.stringify({ country, device, browser, ts: Date.now() }));
 console.log(`📝 Queued click for ${short_code}`);
 
+      
+      
+      
+      return res.redirect(302, cachedUrl);
+    }
 
+    console.log(`💾 Cache MISS for ${short_code} - MongoDB Query`);
 
+    // STEP 2: Cache এ নাই। MongoDB থেকে আনো
+    const linkDoc = await Link.findOne({ short_code });
+
+    if (!linkDoc) {
+      return res.status(404).json({ message: "Link not found!" });
+    }
+
+    // STEP 3: MongoDB থেকে পাইছো। Redis এ Save করো 1 ঘন্টার জন্য
+    await redisClient.set(short_code, linkDoc.original_url, { EX: 3600 });
+    console.log(`💾 Saved ${short_code} to Redis Cache for 1 hour`);
 
 
     // STEP 5: Redirect

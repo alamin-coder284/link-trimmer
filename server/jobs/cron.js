@@ -12,7 +12,7 @@ const processQueue = async () => {
     const clickCount = await redisClient.get(`clicks:${short_code}`);
     if (!clickCount) continue;
 
-    const analytics = await redisClient.lrange(key, 0, -1);
+    const analytics = await redisClient.lRange(key, 0, -1);
 
     // Safe parsing
     const parsedAnalytics = analytics

@@ -73,7 +73,7 @@ const getURL = async (req, res) => {
       // Redis Queue তে Click জমাও - DB Touch করবা না
       try {
       await redisClient.incr(`clicks:${short_code}`);
-      await redisClient.lpush(
+      await redisClient.lPush(
         `queue:${short_code}`,
         JSON.stringify({ country, device, browser, ts: Date.now() }),
       );

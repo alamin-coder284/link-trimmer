@@ -17,12 +17,6 @@ dotenv.config();
 
 const app = express();
 
-// Redis client
-
-redisClient.on("error", (err) => console.error("Redis error:", err.message));
-
-await redisClient.connect();
-console.log("Redis connected!");
 
 // Rate limiters using YOUR custom middleware (no Lua scripts)
 const generalLimiter = redisRateLimiter(15 * 60 * 1000, 100, "general");

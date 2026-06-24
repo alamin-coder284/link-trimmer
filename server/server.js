@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { createClient } from 'redis';
+import redisClient from './config/redis.js';
 import { redisRateLimiter } from "./middleware/rateLimiter.js";
 import { genShortened, getURL, fetchCommonLinks, getStatus} from "./controllers/linkController.js";
 import Link from "./models/Link.js";
@@ -14,9 +14,6 @@ dotenv.config();
 const app = express();
 
 // Redis client
-export const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-});
 
 redisClient.on('error', (err) => console.error('Redis error:', err.message));
 

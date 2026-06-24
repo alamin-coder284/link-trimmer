@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { createClient } from 'redis';
 import { redisRateLimiter } from "./middleware/rateLimiter.js";
-import { genShortened, getURL, fetchCommonLinks } from "./controllers/linkController.js";
+import { genShortened, getURL, fetchCommonLinks, getStatus} from "./controllers/linkController.js";
+import Link from "./models/Link.js";
 
 dotenv.config();
 
@@ -34,16 +35,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.post("/api/shorten", trimLimiter, genShortened);
 app.post("/links", fetchCommonLinks);
-app.get("/:short_code", getURL);
 
-app.get("/api/status", async (req, res) => {
-  try {
-    await redisClient.ping();
-    res.json({ redis: "connected", database: "connected", server: "running" });
-  } catch (err) {
-    res.json({ redis: "disconnected", database: "connected", server: "running" });
-  }
-});
+app.get("/api/status", getStatus);
 
 
 app.get("/api/analytics/:short_code", async (req, res) => {
@@ -108,6 +101,9 @@ app.get("/api/rate-limit-status", async (req, res) => {
     res.status(500).json({ message: "Could not fetch limits" });
   }
 });
+
+  app.get("/:short_code", getURL);
+
 
 const PORT = process.env.PORT || 1234;
 app.listen(PORT, () => {

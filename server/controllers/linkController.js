@@ -1,6 +1,8 @@
 import Link from "../models/Link.js";
 import { nanoid } from "nanoid";
-import UAParser from "ua-parser-js";
+import {UAParser} from "ua-parser-js";
+import redisClient from "../config/redis.js";
+
 
 const genShortened = async (req, res) => {
   try {
@@ -106,4 +108,18 @@ const fetchCommonLinks = async (req, res) => {
   }
 };
 
-export { genShortened, getURL, fetchCommonLinks };
+
+const getStatus = async (req, res) => {
+  try {
+    await redisClient.ping();
+    res.json({ redis: "connected", database: "connected", server: "running" });
+  } catch (err) {
+    res.json({ redis: "disconnected", database: "connected", server: "running" });
+  }
+
+}
+
+
+
+export { genShortened, getURL, fetchCommonLinks 
+, getStatus};

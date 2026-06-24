@@ -53,33 +53,45 @@ const getURL = async (req, res) => {
   try {
     const { short_code } = req.params;
 
+    // STEP 1: Redis Cache চেক করো আগে - Core Layer 1
+    const cachedUrl = await redisClient.get(short_code);
+    
+    if (cachedUrl) {
+      console.log(`⚡ Cache HIT for ${short_code} - 1ms Redirect`);
+      return res.redirect(302, cachedUrl);
+    }
+
+    console.log(`💾 Cache MISS for ${short_code} - MongoDB Query`);
+
+    // STEP 2: Cache এ নাই। MongoDB থেকে আনো
     const linkDoc = await Link.findOne({ short_code });
 
     if (!linkDoc) {
       return res.status(404).json({ message: "Link not found!" });
     }
 
-    // Parse device info
+    // STEP 3: MongoDB থেকে পাইছো। Redis এ Save করো 1 ঘন্টার জন্য
+    await redisClient.set(short_code, linkDoc.original_url, { EX: 3600 });
+    console.log(`💾 Saved ${short_code} to Redis Cache for 1 hour`);
+
+    // STEP 4: Analytics এর কাজ আগের মতোই
     const ua = new UAParser(req.headers['user-agent']);
     const device = ua.getDevice().type || 'desktop';
     const browser = ua.getBrowser().name || 'unknown';
 
-    // Get country from IP (free API)
     let country = 'unknown';
     try {
       const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
       const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
       const geoData = await geoRes.json();
       country = geoData.country || 'unknown';
-    } catch (err) {
-      // Silently fail — country is bonus, not critical
-    }
+    } catch (err) {}
 
-    // Save analytics
     linkDoc.analytics.push({ country, device, browser });
     linkDoc.clicks += 1;
     await linkDoc.save();
 
+    // STEP 5: Redirect
     res.redirect(302, linkDoc.original_url);
   } catch (err) {
     res.status(500).json({ message: err.message });

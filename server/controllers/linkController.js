@@ -87,9 +87,20 @@ const getURL = async (req, res) => {
       country = geoData.country || 'unknown';
     } catch (err) {}
 
+    /* commented for incr, lpush
     linkDoc.analytics.push({ country, device, browser });
     linkDoc.clicks += 1;
     await linkDoc.save();
+    */
+
+    // Redis Queue তে Click জমাও - DB Touch করবা না
+   await redisClient.incr(`clicks:${short_code}`);
+   await redisClient.lpush(`queue:${short_code}`, JSON.stringify({ country, device, browser, ts: Date.now() }));
+console.log(`📝 Queued click for ${short_code}`);
+
+
+
+
 
     // STEP 5: Redirect
     res.redirect(302, linkDoc.original_url);

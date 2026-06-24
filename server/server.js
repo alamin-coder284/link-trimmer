@@ -6,6 +6,8 @@ import { createClient } from 'redis';
 import { redisRateLimiter } from "./middleware/rateLimiter.js";
 import { genShortened, getURL, fetchCommonLinks, getStatus} from "./controllers/linkController.js";
 import Link from "./models/Link.js";
+import processQueue from './jobs/cron.js';
+
 
 dotenv.config();
 
@@ -104,7 +106,11 @@ app.get("/api/rate-limit-status", async (req, res) => {
 
   app.get("/:short_code", getURL);
 
-
+  
+setInterval(processQueue, 5000); // প্রতি 5s পর চলবে
+console.log("⏰ Cron Job Started - 5s interval"); 
+  
+  
 const PORT = process.env.PORT || 1234;
 app.listen(PORT, () => {
   console.log(`Server running on PORT ${PORT}`);

@@ -71,12 +71,16 @@ const getURL = async (req, res) => {
     */
 
       // Redis Queue তে Click জমাও - DB Touch করবা না
+      try {
       await redisClient.incr(`clicks:${short_code}`);
       await redisClient.lpush(
         `queue:${short_code}`,
         JSON.stringify({ country, device, browser, ts: Date.now() }),
       );
-      console.log(`📝 Queued click for ${short_code}`);
+      console.log(`📝 Queued click for ${short_code}`); }
+      catch(err) {
+      console.log("Queued failed: "+err.message);
+      }
 
       return res.redirect(302, cachedUrl);
     }

@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 html {
-scroll-behavior: scroll;
-
+  scroll-behavior: scroll;
 }
 
 @keyframes draw {

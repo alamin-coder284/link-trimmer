@@ -293,16 +293,15 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
                     </div>
                   </div>
                   {/* Analytics Panel */}
-{expandedId === linkId && (
-  <div className="px-5 sm:px-6 pb-5">
-    <AnalyticsPanel 
-      data={analyticsData[linkId]} 
-      isLoading={loadingAnalytics === linkId} 
-    />
-  </div>
-)}
+                  {expandedId === linkId && (
+                    <div className="px-5 sm:px-6 pb-5">
+                      <AnalyticsPanel
+                        data={analyticsData[linkId]}
+                        isLoading={loadingAnalytics === linkId}
+                      />
+                    </div>
+                  )}
                 </div>
-                
               );
             })}
         </div>

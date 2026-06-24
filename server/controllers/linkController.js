@@ -1,8 +1,7 @@
 import Link from "../models/Link.js";
 import { nanoid } from "nanoid";
-import {UAParser} from "ua-parser-js";
+import { UAParser } from "ua-parser-js";
 import redisClient from "../config/redis.js";
-
 
 const genShortened = async (req, res) => {
   try {
@@ -11,8 +10,7 @@ const genShortened = async (req, res) => {
     if (!url) {
       return res.status(404).json({ message: "No URL found!" });
     }
-     
-     
+
     // Check for duplicate
     const existingLink = await Link.findOne({ original_url: url });
     if (existingLink) {
@@ -23,10 +21,7 @@ const genShortened = async (req, res) => {
         message: "URL already shortened",
       });
     }
-    
-    
-    
-    
+
     const shortCode = nanoid(7);
 
     const newLink = new Link({
@@ -46,47 +41,43 @@ const genShortened = async (req, res) => {
   }
 };
 
-
-
-
 const getURL = async (req, res) => {
   try {
     const { short_code } = req.params;
 
     // STEP 1: Redis Cache চেক করো আগে - Core Layer 1
     const cachedUrl = await redisClient.get(short_code);
-    
+
     if (cachedUrl) {
       console.log(`⚡ Cache HIT for ${short_code} - 1ms Redirect`);
-      
-      
+
       // STEP 4: Analytics এর কাজ আগের মতোই
-    const ua = new UAParser(req.headers['user-agent']);
-    const device = ua.getDevice().type || 'desktop';
-    const browser = ua.getBrowser().name || 'unknown';
+      const ua = new UAParser(req.headers["user-agent"]);
+      const device = ua.getDevice().type || "desktop";
+      const browser = ua.getBrowser().name || "unknown";
 
-    let country = 'unknown';
-    try {
-      const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-      const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
-      const geoData = await geoRes.json();
-      country = geoData.country || 'unknown';
-    } catch (err) {}
+      let country = "unknown";
+      try {
+        const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+        const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+        const geoData = await geoRes.json();
+        country = geoData.country || "unknown";
+      } catch (err) {}
 
-    /* commented for incr, lpush
+      /* commented for incr, lpush
     linkDoc.analytics.push({ country, device, browser });
     linkDoc.clicks += 1;
     await linkDoc.save();
     */
 
-    // Redis Queue তে Click জমাও - DB Touch করবা না
-   await redisClient.incr(`clicks:${short_code}`);
-   await redisClient.lpush(`queue:${short_code}`, JSON.stringify({ country, device, browser, ts: Date.now() }));
-console.log(`📝 Queued click for ${short_code}`);
+      // Redis Queue তে Click জমাও - DB Touch করবা না
+      await redisClient.incr(`clicks:${short_code}`);
+      await redisClient.lpush(
+        `queue:${short_code}`,
+        JSON.stringify({ country, device, browser, ts: Date.now() }),
+      );
+      console.log(`📝 Queued click for ${short_code}`);
 
-      
-      
-      
       return res.redirect(302, cachedUrl);
     }
 
@@ -103,18 +94,12 @@ console.log(`📝 Queued click for ${short_code}`);
     await redisClient.set(short_code, linkDoc.original_url, { EX: 3600 });
     console.log(`💾 Saved ${short_code} to Redis Cache for 1 hour`);
 
-
     // STEP 5: Redirect
     res.redirect(302, linkDoc.original_url);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
-
-
-
-
 
 const fetchCommonLinks = async (req, res) => {
   try {
@@ -131,18 +116,17 @@ const fetchCommonLinks = async (req, res) => {
   }
 };
 
-
 const getStatus = async (req, res) => {
   try {
     await redisClient.ping();
     res.json({ redis: "connected", database: "connected", server: "running" });
   } catch (err) {
-    res.json({ redis: "disconnected", database: "connected", server: "running" });
+    res.json({
+      redis: "disconnected",
+      database: "connected",
+      server: "running",
+    });
   }
+};
 
-}
-
-
-
-export { genShortened, getURL, fetchCommonLinks 
-, getStatus};
+export { genShortened, getURL, fetchCommonLinks, getStatus };

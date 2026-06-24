@@ -2,12 +2,16 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import redisClient from './config/redis.js';
+import redisClient from "./config/redis.js";
 import { redisRateLimiter } from "./middleware/rateLimiter.js";
-import { genShortened, getURL, fetchCommonLinks, getStatus} from "./controllers/linkController.js";
+import {
+  genShortened,
+  getURL,
+  fetchCommonLinks,
+  getStatus,
+} from "./controllers/linkController.js";
 import Link from "./models/Link.js";
-import processQueue from './jobs/cron.js';
-
+import processQueue from "./jobs/cron.js";
 
 dotenv.config();
 
@@ -15,10 +19,10 @@ const app = express();
 
 // Redis client
 
-redisClient.on('error', (err) => console.error('Redis error:', err.message));
+redisClient.on("error", (err) => console.error("Redis error:", err.message));
 
 await redisClient.connect();
-console.log('Redis connected!');
+console.log("Redis connected!");
 
 // Rate limiters using YOUR custom middleware (no Lua scripts)
 const generalLimiter = redisRateLimiter(15 * 60 * 1000, 100, "general");
@@ -28,20 +32,20 @@ app.use(generalLimiter);
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("Database connected!"))
-  .catch(err => console.log("Database connection error:", err.message));
+  .catch((err) => console.log("Database connection error:", err.message));
 
 app.post("/api/shorten", trimLimiter, genShortened);
 app.post("/links", fetchCommonLinks);
 
 app.get("/api/status", getStatus);
 
-
 app.get("/api/analytics/:short_code", async (req, res) => {
   try {
     const link = await Link.findOne({ short_code: req.params.short_code });
-    
+
     if (!link) {
       return res.status(404).json({ message: "Link not found" });
     }
@@ -51,7 +55,7 @@ app.get("/api/analytics/:short_code", async (req, res) => {
     const devices = {};
     const browsers = {};
 
-    link.analytics.forEach(a => {
+    link.analytics.forEach((a) => {
       countries[a.country] = (countries[a.country] || 0) + 1;
       devices[a.device] = (devices[a.device] || 0) + 1;
       browsers[a.browser] = (browsers[a.browser] || 0) + 1;
@@ -62,7 +66,7 @@ app.get("/api/analytics/:short_code", async (req, res) => {
       countries,
       devices,
       browsers,
-      recentActivity: link.analytics.slice(-10).reverse()
+      recentActivity: link.analytics.slice(-10).reverse(),
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -71,17 +75,17 @@ app.get("/api/analytics/:short_code", async (req, res) => {
 
 app.get("/api/rate-limit-status", async (req, res) => {
   try {
-    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
     const trimKey = `trim:${ip}`;
     const generalKey = `general:${ip}`;
-    
+
     const [trimCount, generalCount, trimTTL, generalTTL] = await Promise.all([
       redisClient.get(trimKey),
       redisClient.get(generalKey),
       redisClient.ttl(trimKey),
       redisClient.ttl(generalKey),
     ]);
-    
+
     res.json({
       trim: {
         used: parseInt(trimCount) || 0,
@@ -94,27 +98,19 @@ app.get("/api/rate-limit-status", async (req, res) => {
         limit: 100,
         remaining: 100 - (parseInt(generalCount) || 0),
         resetIn: generalTTL > 0 ? generalTTL : 900,
-      }
+      },
     });
   } catch (err) {
     res.status(500).json({ message: "Could not fetch limits" });
   }
 });
 
-  app.get("/:short_code", getURL);
+app.get("/:short_code", getURL);
 
-  
 setInterval(processQueue, 5000); // প্রতি 5s পর চলবে
-console.log("⏰ Cron Job Started - 5s interval"); 
-  
-  
+console.log("⏰ Cron Job Started - 5s interval");
+
 const PORT = process.env.PORT || 1234;
 app.listen(PORT, () => {
   console.log(`Server running on PORT ${PORT}`);
 });
-
-
-
-
-
-

@@ -17,10 +17,10 @@ A URL shortener I built from scratch because long links are ugly and life is too
 
 ## Live Stuff
 
-| Thing | Where |
-|-------|-------|
-| Frontend | vercel |
-| Backend | render |
+| Thing       | Where                |
+| ----------- | -------------------- |
+| Frontend    | vercel               |
+| Backend     | render               |
 | Short links | zip9.gt.tc/your-code |
 
 ---

@@ -3,7 +3,7 @@ import redisClient from "../config/redis.js";
 export const redisRateLimiter = (windowMs, maxRequests, keyPrefix) => {
   return async (req, res, next) => {
     try {
-      const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+      const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
       const key = `${keyPrefix}:${ip}`;
 
       const current = await redisClient.get(key);
@@ -17,7 +17,7 @@ export const redisRateLimiter = (windowMs, maxRequests, keyPrefix) => {
 
       if (count >= maxRequests) {
         return res.status(429).json({
-          message: "Too many requests. Please slow down, like a calm prayer."
+          message: "Too many requests. Please slow down, like a calm prayer.",
         });
       }
 

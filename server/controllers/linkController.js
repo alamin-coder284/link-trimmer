@@ -49,8 +49,6 @@ const genShortened = async (req, res) => {
 
 
 
-
-
 const getURL = async (req, res) => {
   try {
     const { short_code } = req.params;

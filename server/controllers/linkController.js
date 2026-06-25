@@ -170,7 +170,7 @@ const getURL = async (req, res) => {
 <body>
   <div class="container">
     <div class="logo">zip<span>_</span>9</div>
-    <div class="subtitle">illuminated inkwell</div>
+    <div class="subtitle">For Your Safety</div>
     <div class="lock-icon">🔐</div>
     <h2>This link is password‑protected</h2>
     <div class="short-code">zip9.gt.tc/${shortCode}</div>

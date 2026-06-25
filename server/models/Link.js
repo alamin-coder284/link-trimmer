@@ -12,6 +12,7 @@ const linkSchema = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
     },
   ],
+  password: { type: String, default: null },
 });
 const Link = mongoose.model("Link", linkSchema);
 

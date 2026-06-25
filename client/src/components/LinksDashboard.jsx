@@ -233,6 +233,11 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
                         icon={faLock}
                         className="text-gray-500 text-[10px]"
                       />
+                      {link.expiresAt && (
+  <span className="text-gray-600 text-xs ml-2" title={`Expires: ${new Date(link.expiresAt).toLocaleDateString()}`}>
+    ⏳ {new Date(link.expiresAt).toLocaleDateString()}
+  </span>
+)}
   </span>
 )} 
                     </div>

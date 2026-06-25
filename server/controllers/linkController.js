@@ -5,7 +5,7 @@ import redisClient from "../config/redis.js";
 
 const genShortened = async (req, res) => {
   try {
-    const { url, password } = req.body;
+    const { url, password, expiresAt } = req.body;
 
     if (!url) {
       return res.status(404).json({ message: "No URL found!" });
@@ -28,6 +28,7 @@ const genShortened = async (req, res) => {
       short_code: shortCode,
       original_url: url,
       password: password || null,
+      expiresAt: expiresAt || null,
       clicks: 0,
     });
 

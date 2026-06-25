@@ -250,9 +250,13 @@ const getURL = async (req, res) => {
     }
     
 
-    // STEP 3: MongoDB থেকে পাইছো। Redis এ Save করো 1 ঘন্টার জন্য
-    await redisClient.set(short_code, linkDoc.original_url, { EX: 3600 });
-    console.log(`💾 Saved ${short_code} to Redis Cache for 1 hour`);
+    // STEP 3: MongoDB to Redis
+    const ttl = linkDoc.expiresAt 
+  ? Math.max(1, Math.floor((new Date(linkDoc.expiresAt) - new Date()) / 1000))
+  : 3600;
+
+await redisClient.set(short_code, linkDoc.original_url, { EX: ttl });
+console.log(`💾 Saved ${short_code} to Redis Cache for ${ttl} seconds`);
 
     // STEP 5: Redirect
     res.redirect(302, linkDoc.original_url);

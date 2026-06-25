@@ -9,6 +9,7 @@ import {
   faCodeCommit,
   faFileLines,
   faLock,
+  faClock,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
@@ -20,6 +21,26 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
   const [analyticsData, setAnalyticsData] = useState({});
   const [loadingAnalytics, setLoadingAnalytics] = useState(null);
   const STORAGE_KEY = "link_trimmer_urls";
+  
+  
+  //utility f() for expiration date
+  const getTimeLeft = (expiresAt) => {
+  const now = new Date();
+  const expires = new Date(expiresAt);
+  const diff = expires - now;
+
+  if (diff <= 0) return 'Expired';
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return 'Less than a minute left';
+  if (minutes < 60) return `${minutes} min left`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} left`;
+  return `${days} day${days > 1 ? 's' : ''} left`;
+};
+  
 
   const fetchAnalytics = async (shortCode, linkId) => {
     setLoadingAnalytics(linkId);
@@ -233,11 +254,20 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
                         icon={faLock}
                         className="text-gray-500 text-[10px]"
                       />
-                      {link.expiresAt && (
-  <span className="text-gray-600 text-xs ml-2" title={`Expires: ${new Date(link.expiresAt).toLocaleDateString()}`}>
-    ⏳ {new Date(link.expiresAt).toLocaleDateString()}
-  </span>
-)}
+                      
+  <span className="text-gray-600 text-xs ml-2">
+  {link.expiresAt && !isNaN(new Date(link.expiresAt).getTime())
+    ? `⏳ ${getTimeLeft(link.expiresAt)}`
+    : (
+      <Fragment>
+        <FontAwesomeIcon icon={faClock} className="text-gray-500 text-[10px]" />
+        {' No Expiry'}
+      </Fragment>
+    )
+  }
+</span>
+
+
   </span>
 )} 
                     </div>

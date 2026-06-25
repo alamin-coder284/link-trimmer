@@ -42,10 +42,16 @@ const genShortened = async (req, res) => {
   }
 };
 
+
+
+
+
 // get directed with your code
 
 const getURL = async (req, res) => {
-  const getPasswordForm = (shortCode, error = "") => `
+   const pwd = req.body?.pwd || req.query?.pwd || '';
+
+  const getPasswordForm = (shortCode, error = '') => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -171,7 +177,7 @@ const getURL = async (req, res) => {
     
     <form method="POST" action="/${shortCode}">
       <input type="password" name="pwd" placeholder="Enter password..." autofocus required>
-      ${error ? `<div class="error">${error}</div>` : ""}
+      ${error ? `<div class="error">${error}</div>` : ''}
       <button type="submit">Unlock →</button>
     </form>
     
@@ -182,7 +188,7 @@ const getURL = async (req, res) => {
 </body>
 </html>
 `;
-
+  
   try {
     const { short_code } = req.params;
 
@@ -207,23 +213,23 @@ const getURL = async (req, res) => {
 
       // Redis Queue তে Click জমাও - DB Touch করবা না
       try {
-        await redisClient.incr(`clicks:${short_code}`);
-        await redisClient.lPush(
-          `queue:${short_code}`,
-          JSON.stringify({ country, device, browser, ts: Date.now() }),
-        );
-        console.log(`📝 Queued click for ${short_code}`);
-      } catch (err) {
-        console.log("Queued failed: " + err.message);
+      await redisClient.incr(`clicks:${short_code}`);
+      await redisClient.lPush(
+        `queue:${short_code}`,
+        JSON.stringify({ country, device, browser, ts: Date.now() }),
+      );
+      console.log(`📝 Queued click for ${short_code}`); }
+      catch(err) {
+      console.log("Queued failed: "+err.message);
       }
-
-      const linkDoc = await Link.findOne({ short_code }, "password");
-
-      if (linkDoc.password && linkDoc.password !== pwd) {
-        const error = pwd ? "Incorrect password" : "";
-        return res.status(401).send(getPasswordForm(short_code, error));
+      
+      const linkDoc = await Link.findOne({short_code}, 'password');
+      
+      if(linkDoc.password && linkDoc.password !== pwd) {
+      const error = pwd ? 'Incorrect password' : "";
+      return res.status(401).send(getPasswordForm(short_code, error));
       }
-
+      
       return res.redirect(302, cachedUrl);
     }
 
@@ -235,12 +241,13 @@ const getURL = async (req, res) => {
     if (!linkDoc) {
       return res.status(404).json({ message: "Link not found!" });
     }
-    if (linkDoc.password) {
-      if (!pwd || linkDoc.password !== pwd) {
-        const error = pwd ? "Incorrect password" : "";
-        return res.status(401).send(getPasswordForm(short_code, error));
+    if(linkDoc.password) {
+      if(!pwd || linkDoc.password !== pwd) {
+        const error = pwd ? 'Incorrect password' : "";
+      return res.status(401).send(getPasswordForm(short_code, error));
       }
     }
+    
 
     // STEP 3: MongoDB থেকে পাইছো। Redis এ Save করো 1 ঘন্টার জন্য
     await redisClient.set(short_code, linkDoc.original_url, { EX: 3600 });

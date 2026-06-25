@@ -8,6 +8,7 @@ import {
   faCircleCheck,
   faCodeCommit,
   faFileLines,
+  faLock,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { faCopy, faTrashCan } from "@fortawesome/free-regular-svg-icons";
@@ -226,7 +227,16 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
                     <div className="text-xs text-gray-400 font-mono truncate max-w-md pl-5">
                       <span className="text-gray-600">→</span>{" "}
                       {link.original_url}
+                     {link.password && (
+  <span className="text-gray-500 text-xs ml-2" title="Password protected">
+  <FontAwesomeIcon
+                        icon={faLock}
+                        className="text-gray-500 text-[10px]"
+                      />
+  </span>
+)} 
                     </div>
+                    
                   </div>
 
                   {/* Metrics & Controls */}

@@ -57,7 +57,7 @@ const getURL = async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>zip9 :: Password Required</title>
+  <title>ZIP9 :: Password Required</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {

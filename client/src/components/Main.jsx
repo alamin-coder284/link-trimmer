@@ -23,19 +23,18 @@ export default function Main() {
   const [isDuplicate, setIsDuplicate] = useState(false);
   const [rateLimit, setRateLimit] = useState({ remaining: 10, resetIn: 0 });
   const [enablePassword, setEnablePassword] = useState(false);
-const [linkPassword, setLinkPassword] = useState('');
-   // In Main.jsx state
-const [expiry, setExpiry] = useState(null); // null = never, or number in hours
-  
+  const [linkPassword, setLinkPassword] = useState("");
+  // In Main.jsx state
+  const [expiry, setExpiry] = useState(null); // null = never, or number in hours
 
-// Preset options
-const expiryOptions = [
-  { label: 'Never', value: null },
-  { label: '1 Hour', value: 1 },
-  { label: '24 Hours', value: 24 },
-  { label: '7 Days', value: 168 },
-  { label: '30 Days', value: 720 },
-];
+  // Preset options
+  const expiryOptions = [
+    { label: "Never", value: null },
+    { label: "1 Hour", value: 1 },
+    { label: "24 Hours", value: 24 },
+    { label: "7 Days", value: 168 },
+    { label: "30 Days", value: 720 },
+  ];
 
   const STORAGE_KEY = "link_trimmer_urls";
   const USER_LINKS_FLAG = "user_has_trimmed";
@@ -160,18 +159,20 @@ const expiryOptions = [
 
     setIsTrimming(true);
     setTrimError("");
-    
+
     let expiresAt = null;
-if (expiry) {
-  expiresAt = new Date(Date.now() + expiry * 60 * 60 * 1000); // hours to milliseconds
-}
+    if (expiry) {
+      expiresAt = new Date(Date.now() + expiry * 60 * 60 * 1000); // hours to milliseconds
+    }
 
     try {
       const res = await fetch("https://zip9-trimmer.onrender.com/api/shorten", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: longUrl, password: enablePassword ? linkPassword : undefined,
-        expiresAt: expiresAt ? expiresAt.toISOString() : null
+        body: JSON.stringify({
+          url: longUrl,
+          password: enablePassword ? linkPassword : undefined,
+          expiresAt: expiresAt ? expiresAt.toISOString() : null,
         }),
       });
 
@@ -219,9 +220,9 @@ if (expiry) {
 
       fetchRateLimit();
       setLongUrl("");
-      
-      setLinkPassword('');
-setEnablePassword(false);
+
+      setLinkPassword("");
+      setEnablePassword(false);
     } catch (err) {
       setTrimError(err.message || "Something went wrong");
     } finally {
@@ -334,9 +335,9 @@ setEnablePassword(false);
                       trimError ? "text-red-400" : "text-gray-500"
                     }`}
                   >
-               <div className="absolute top-4 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-  <Link className="w-4 h-4" />
-</div>
+                    <div className="absolute top-4 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                      <Link className="w-4 h-4" />
+                    </div>
                   </div>
                   <input
                     type="url"
@@ -360,18 +361,18 @@ setEnablePassword(false);
                       trimError ? "ring-2 ring-red-500/30" : ""
                     }`}
                   />
-                  
-{enablePassword && (
-  <div className="animate-in fade-in duration-200">
-    <input
-      type="text"
-      placeholder="Set a password..."
-      value={linkPassword}
-      onChange={(e) => setLinkPassword(e.target.value)}
-      className="w-full px-3 py-2.5 bg-[#111] border border-gray-800 rounded-lg text-white text-sm font-mono placeholder-gray-600 focus:outline-none focus:border-[#CB3837] transition"
-    />
-  </div>
-)}
+
+                  {enablePassword && (
+                    <div className="animate-in fade-in duration-200">
+                      <input
+                        type="text"
+                        placeholder="Set a password..."
+                        value={linkPassword}
+                        onChange={(e) => setLinkPassword(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-[#111] border border-gray-800 rounded-lg text-white text-sm font-mono placeholder-gray-600 focus:outline-none focus:border-[#CB3837] transition"
+                      />
+                    </div>
+                  )}
 
                   {/* Loading spinner inside input */}
                   {isTrimming && (
@@ -470,63 +471,73 @@ setEnablePassword(false);
                     </div>
                   )}
                 </div>
-<div className="flex gap-2 items-center justify-center">
-  {/* Trim Button – 90% */}
-  <button
-    type="submit"
-    className="bg-[#CB3837] hover:bg-[#b02e2d] text-white font-medium text-sm px-6 py-3 rounded-lg transition-all duration-150 flex items-center justify-center space-x-2 shadow-lg shadow-red-900/20 flex-1"
-  >
-    <span>Trim URL</span>
-    <Bolt className="w-3.5 h-3.5 fill-current" />
-  </button>
+                <div className="flex gap-2 items-center justify-center">
+                  {/* Trim Button – 90% */}
+                  <button
+                    type="submit"
+                    className="bg-[#CB3837] hover:bg-[#b02e2d] text-white font-medium text-sm px-6 py-3 rounded-lg transition-all duration-150 flex items-center justify-center space-x-2 shadow-lg shadow-red-900/20 flex-1"
+                  >
+                    <span>Trim URL</span>
+                    <Bolt className="w-3.5 h-3.5 fill-current" />
+                  </button>
 
-  {/* Lock Toggle – 10% */}
-  <button
-    type="button"
-    onClick={() => {
-      setEnablePassword(!enablePassword);
-      if (enablePassword) setLinkPassword('');
-    }}
-    className={`flex-shrink-0 px-3 py-3 rounded-lg border transition-all duration-150 font-mono text-sm font-medium ${
-      enablePassword
-        ? 'bg-[#CB3837]/10 border-[#CB3837]/50 text-[#CB3837] shadow-sm'
-        : 'bg-transparent border-gray-800 text-gray-500 hover:text-gray-300 hover:border-gray-700'
-    }`}
-    title={enablePassword ? 'Remove password' : 'Add password'}
-  >
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M12 2C9.2 2 7 4.2 7 7v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7c0-2.8-2.2-5-5-5z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="15" r="1.5" fill="currentColor" />
-      <path
-        d="M12 12v2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-    
-  </button>
-</div>
-                {enablePassword && <select
-  value={expiry}
-  onChange={(e) => setExpiry(e.target.value === 'null' ? null : parseInt(e.target.value))}
-  className="bg-[#111] border border-gray-800 rounded-lg text-gray-400 text-xs font-mono px-2 py-2 focus:outline-none focus:border-[#CB3837] transition"
->
-  {expiryOptions.map(opt => (
-    <option key={opt.label} value={opt.value === null ? 'null' : opt.value}>
-      {opt.label}
-    </option>
-  ))}
-</select>}
+                  {/* Lock Toggle – 10% */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEnablePassword(!enablePassword);
+                      if (enablePassword) setLinkPassword("");
+                    }}
+                    className={`flex-shrink-0 px-3 py-3 rounded-lg border transition-all duration-150 font-mono text-sm font-medium ${
+                      enablePassword
+                        ? "bg-[#CB3837]/10 border-[#CB3837]/50 text-[#CB3837] shadow-sm"
+                        : "bg-transparent border-gray-800 text-gray-500 hover:text-gray-300 hover:border-gray-700"
+                    }`}
+                    title={enablePassword ? "Remove password" : "Add password"}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 2C9.2 2 7 4.2 7 7v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7c0-2.8-2.2-5-5-5z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle cx="12" cy="15" r="1.5" fill="currentColor" />
+                      <path
+                        d="M12 12v2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                {enablePassword && (
+                  <select
+                    value={expiry}
+                    onChange={(e) =>
+                      setExpiry(
+                        e.target.value === "null"
+                          ? null
+                          : parseInt(e.target.value),
+                      )
+                    }
+                    className="bg-[#111] border border-gray-800 rounded-lg text-gray-400 text-xs font-mono px-2 py-2 focus:outline-none focus:border-[#CB3837] transition"
+                  >
+                    {expiryOptions.map((opt) => (
+                      <option
+                        key={opt.label}
+                        value={opt.value === null ? "null" : opt.value}
+                      >
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </form>
               <p className="text-left text-xs text-gray-600 mt-2 ml-2 font-mono">
                 Press{" "}

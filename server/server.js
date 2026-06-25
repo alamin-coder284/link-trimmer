@@ -17,7 +17,6 @@ dotenv.config();
 
 const app = express();
 
-
 // Rate limiters using YOUR custom middleware (no Lua scripts)
 const generalLimiter = redisRateLimiter(15 * 60 * 1000, 100, "general");
 const trimLimiter = redisRateLimiter(60 * 1000, 10, "trim");
@@ -101,7 +100,7 @@ app.get("/api/rate-limit-status", async (req, res) => {
 });
 
 app.get("/:short_code", getURL);
-app.post("/:short_code", getURL); 
+app.post("/:short_code", getURL);
 
 setInterval(processQueue, 5000); // প্রতি 5s পর চলবে
 console.log("⏰ Cron Job Started - 5s interval");

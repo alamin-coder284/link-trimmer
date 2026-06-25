@@ -16,11 +16,9 @@ const linkSchema = new mongoose.Schema({
   password: { type: String, default: null },
 });
 
-
 // TTL Index – MongoDB auto-deletes when expiresAt is reached
 linkSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  
-  
+
 const Link = mongoose.model("Link", linkSchema);
 
 export default Link;

@@ -21,26 +21,24 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
   const [analyticsData, setAnalyticsData] = useState({});
   const [loadingAnalytics, setLoadingAnalytics] = useState(null);
   const STORAGE_KEY = "link_trimmer_urls";
-  
-  
+
   //utility f() for expiration date
   const getTimeLeft = (expiresAt) => {
-  const now = new Date();
-  const expires = new Date(expiresAt);
-  const diff = expires - now;
+    const now = new Date();
+    const expires = new Date(expiresAt);
+    const diff = expires - now;
 
-  if (diff <= 0) return 'Expired';
+    if (diff <= 0) return "Expired";
 
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return 'Less than a minute left';
-  if (minutes < 60) return `${minutes} min left`;
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} left`;
-  return `${days} day${days > 1 ? 's' : ''} left`;
-};
-  
+    if (minutes < 1) return "Less than a minute left";
+    if (minutes < 60) return `${minutes} min left`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} left`;
+    return `${days} day${days > 1 ? "s" : ""} left`;
+  };
 
   const fetchAnalytics = async (shortCode, linkId) => {
     setLoadingAnalytics(linkId);
@@ -248,30 +246,33 @@ export default function LinksDashboard({ links, setLinks, isLoading }) {
                     <div className="text-xs text-gray-400 font-mono truncate max-w-md pl-5">
                       <span className="text-gray-600">→</span>{" "}
                       {link.original_url}
-                     {link.password && (
-  <span className="text-gray-500 text-xs ml-2" title="Password protected">
-  <FontAwesomeIcon
-                        icon={faLock}
-                        className="text-gray-500 text-[10px]"
-                      />
-                      
-  <span className="text-gray-600 text-xs ml-2">
-  {link.expiresAt && !isNaN(new Date(link.expiresAt).getTime())
-    ? `⏳ ${getTimeLeft(link.expiresAt)}`
-    : (
-      <Fragment>
-        <FontAwesomeIcon icon={faClock} className="text-gray-500 text-[10px]" />
-        {' No Expiry'}
-      </Fragment>
-    )
-  }
-</span>
+                      {link.password && (
+                        <span
+                          className="text-gray-500 text-xs ml-2"
+                          title="Password protected"
+                        >
+                          <FontAwesomeIcon
+                            icon={faLock}
+                            className="text-gray-500 text-[10px]"
+                          />
 
-
-  </span>
-)} 
+                          <span className="text-gray-600 text-xs ml-2">
+                            {link.expiresAt &&
+                            !isNaN(new Date(link.expiresAt).getTime()) ? (
+                              `⏳ ${getTimeLeft(link.expiresAt)}`
+                            ) : (
+                              <Fragment>
+                                <FontAwesomeIcon
+                                  icon={faClock}
+                                  className="text-gray-500 text-[10px]"
+                                />
+                                {" No Expiry"}
+                              </Fragment>
+                            )}
+                          </span>
+                        </span>
+                      )}
                     </div>
-                    
                   </div>
 
                   {/* Metrics & Controls */}
